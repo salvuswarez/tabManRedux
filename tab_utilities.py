@@ -53,20 +53,38 @@ def new_server_instance(server_url,name=''):
 def migrate_content(server,content_items,target_location):
     #should take list of content items and download each one, then 
     #publish it to the target location
+    #this function should always be started from the source site
 
-    #need to determine if it uses same owner or uses current admin
-    #possible use of a preference / setting of where to download temp files to
-
+    #TODO: need to determine if it uses same owner or uses current admin
+    #TODO: possible use of a preference / setting of where to download temp files to
+    site_changed = False
+    batch_limit = 4
+    i = 0
+    published = []
+    downloaded = []
     for item in content_items:
-        item.download(tempfile.mkdtemp())
+        #might need to  be a while loop so i can reset the i and not miss the current item
+        if i < batch_limit:
+            item.download(tempfile.mkdtemp())
+            downloaded.append(item)
+            i +=1
+        else:
+            #publish all files in downloaded list, reset i , reset list
+            #need to switch to target site
+            if server.current_site.content_url != target_location.site.content_url:
+                server.switch_current_site(target_location.site)
+                site_changed = True
 
-        #might need a check here to make sure there is something to publish
-        if item.download_path is not None:
-            #need to figure out how and where to change the location of an item. 
-            item.location = target_location
-            item.publish()
+            for d_item in downloaded:
+                d_item.publish(target_location.project.id)
+            
+            i = 0
+            downloaded = []
+            if site_changed is True:
+                server.switch_current_site(server.previous_site)
+        
 
-        #need to check to see how it should update the owner for the ontent
+        #need to check to see how it should update the owner for the content
         #if attempt to keep original owner:
         #   user = target_location.site.add_user(item.owner.name)
         

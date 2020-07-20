@@ -100,6 +100,9 @@ class Site_Item(tscItem.TSC_Item):
 
 
     def add_user(self,username,site_role=''):
+        #TODO: need to verify user doesnt exist on site already, if so, 
+        # then just grab that id, otherwise create new user
+
         switched_sites = False
         if site_role =='':
             site_role = 'ExplorerCanPublish'
@@ -114,7 +117,7 @@ class Site_Item(tscItem.TSC_Item):
         if switched_sites is True:
             self.__server.switch_current_site(self.__server.previous_site)
 
-        return user
+        return userItem.User_Item(self.server,user)
     
 
     
